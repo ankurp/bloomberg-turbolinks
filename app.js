@@ -32,7 +32,7 @@ app.get('*', function (req, res) {
       }
     });
     $('script[src="//cdn.optimizely.com/js/4368606971.js"], link[href^="https://nav.bloomberg.com"], link[href^="https://www.bbthat.com"], .facemelter-container, .bb-nav-placeholder, nav').remove();
-    $('base').attr('href', 'http://gadfly.bloomberg.com:9292');
+    $('base').attr('href', 'http://localhost:9292');
     res.send($.html());
   });
 });
