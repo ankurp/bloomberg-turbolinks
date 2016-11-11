@@ -2,7 +2,7 @@ import UIKit
 import WebKit
 import Turbolinks
 
-class ApplicationController: UINavigationController, SessionDelegate {
+class ApplicationController: UINavigationController, SessionDelegate, AuthenticationControllerDelegate {
     private let URL = NSURL(string: "http://localhost:9292/")!
     private let webViewProcessPool = WKProcessPool()
 
@@ -25,16 +25,15 @@ class ApplicationController: UINavigationController, SessionDelegate {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        navigationBar.barStyle = UIBarStyle.Black
+        navigationBar.tintColor = UIColor.whiteColor()
+        
         presentVisitableForSession(session, URL: URL)
-
-        let rightButton = UIBarButtonItem(barButtonSystemItem: .Search, target: self, action: #selector(didSelectRightBarButtonItem))
-        self.navigationController?.navigationItem.rightBarButtonItem = rightButton
-        navigationController
-
     }
     
     private func presentVisitableForSession(session: Session, URL: NSURL, action: Action = .Advance) {
-        let visitable = DemoViewController(URL: URL)
+        let visitable = ViewController(URL: URL)
 
         if action == .Advance {
             pushViewController(visitable, animated: true)
@@ -46,29 +45,25 @@ class ApplicationController: UINavigationController, SessionDelegate {
         session.visit(visitable)
     }
     
-    @objc private func didSelectRightBarButtonItem() {
-        
-    }
-
     func session(session: Session, didProposeVisitToURL URL: NSURL, withAction action: Action) {
         presentVisitableForSession(session, URL: URL, action: action)
     }
     
     func session(session: Session, didFailRequestForVisitable visitable: Visitable, withError error: NSError) {
         NSLog("ERROR: %@", error)
-        guard let demoViewController = visitable as? DemoViewController, errorCode = ErrorCode(rawValue: error.code) else { return }
+        guard let viewController = visitable as? ViewController, errorCode = ErrorCode(rawValue: error.code) else { return }
 
         switch errorCode {
         case .HTTPFailure:
             let statusCode = error.userInfo["statusCode"] as! Int
             switch statusCode {
             case 404:
-                demoViewController.presentError(.HTTPNotFoundError)
+                viewController.presentError(.HTTPNotFoundError)
             default:
-                demoViewController.presentError(Error(HTTPStatusCode: statusCode))
+                viewController.presentError(Error(HTTPStatusCode: statusCode))
             }
         case .NetworkFailure:
-            demoViewController.presentError(.NetworkError)
+            viewController.presentError(.NetworkError)
         }
     }
     
@@ -78,5 +73,32 @@ class ApplicationController: UINavigationController, SessionDelegate {
 
     func sessionDidFinishRequest(session: Session) {
         application.networkActivityIndicatorVisible = false
+    }
+    
+    func authenticationControllerDidAuthenticate(authenticationController: AuthenticationController) {
+        session.reload()
+        dismissViewControllerAnimated(true, completion: nil)
+    }
+    
+    func presentAuthenticationController() {
+        let authenticationController = AuthenticationController()
+        authenticationController.delegate = self
+        authenticationController.webViewConfiguration = webViewConfiguration
+        authenticationController.URL = NSURL(string: "https://login.bloomberg.com/")!
+        authenticationController.title = "Sign in"
+        
+        let authNavigationController = UINavigationController(rootViewController: authenticationController)
+        presentViewController(authNavigationController, animated: true, completion: nil)
+    }
+    
+    func presentSectorsController() {
+        let sectorsController = SectorsController()
+        sectorsController.delegate = self
+        sectorsController.webViewConfiguration = webViewConfiguration
+        sectorsController.URL = URL.URLByAppendingPathComponent("markets/sectors")
+        sectorsController.title = "Sectors"
+        
+        let sectorNavigationController = UINavigationController(rootViewController: sectorsController)
+        presentViewController(sectorNavigationController, animated: true, completion: nil)
     }
 }

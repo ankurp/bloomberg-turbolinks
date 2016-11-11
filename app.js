@@ -5,6 +5,14 @@ const cookieParser = require('cookie-parser');
 const app = express();
 const request = require('request');
 const cheerio = require('cheerio');
+const SELECTORS_TO_REMOVE = [
+  'script[src="//cdn.optimizely.com/js/4368606971.js"]',
+  'link[href^="https://nav.bloomberg.com"]',
+  'link[href^="https://www.bbthat.com"]',
+  '.facemelter-container',
+  '.bb-nav-placeholder',
+  'nav'
+].join(", ");
 
 /**
  * Middleware
@@ -31,7 +39,7 @@ app.get('*', function (req, res) {
         link.attribs.href = href.replace(/http:\/\/www\.bloomberg\.com\//, '/');  
       }
     });
-    $('script[src="//cdn.optimizely.com/js/4368606971.js"], link[href^="https://nav.bloomberg.com"], link[href^="https://www.bbthat.com"], .facemelter-container, .bb-nav-placeholder, nav').remove();
+    $(SELECTORS_TO_REMOVE).remove();
     $('base').attr('href', 'http://localhost:9292');
     res.send($.html());
   });

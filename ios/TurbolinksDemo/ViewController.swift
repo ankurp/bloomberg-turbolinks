@@ -1,23 +1,25 @@
 import Turbolinks
 import UIKit
 
-class DemoViewController: Turbolinks.VisitableViewController {
+class ViewController: Turbolinks.VisitableViewController {
     lazy var errorView: ErrorView = {
         let view = NSBundle.mainBundle().loadNibNamed("ErrorView", owner: self, options: nil)!.first as! ErrorView
         view.translatesAutoresizingMaskIntoConstraints = false
         view.retryButton.addTarget(self, action: #selector(retry(_:)), forControlEvents: .TouchUpInside)
         return view
     }()
-    
+
     override func visitableDidRender() {
         super.visitableDidRender()
 
         if let path = visitableURL.path {
             switch path {
             case "/":
-                navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Sign In", style: .Plain, target: self, action: #selector(didSelectRightBarButtonItem(_:)))
+                navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Sign In", style: .Plain, target: self, action: #selector(didSelectSignInButtonItem(_:)))
+                navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Sectors", style: .Plain, target: self, action: #selector(didSelectSectorsButtonItem(_:)))
+                title = "Bloomberg"
             default:
-                navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .Bookmarks, target: self, action: #selector(didSelectRightBarButtonItem(_:)))
+                navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .Bookmarks, target: self, action: #selector(didSelectBookmarkButtonItem(_:)))
             }
         }
     }
@@ -38,7 +40,19 @@ class DemoViewController: Turbolinks.VisitableViewController {
         reloadVisitable()
     }
     
-    func didSelectRightBarButtonItem(sender: AnyObject) {
+    func didSelectBookmarkButtonItem(sender: AnyObject) {
         
+    }
+    
+    func didSelectSignInButtonItem(sender: AnyObject) {
+        guard let appController = self.navigationController as? ApplicationController else { return }
+
+        appController.presentAuthenticationController()
+    }
+    
+    func didSelectSectorsButtonItem(sender: AnyObject) {
+        guard let appController = self.navigationController as? ApplicationController else { return }
+
+        appController.presentSectorsController()
     }
 }
