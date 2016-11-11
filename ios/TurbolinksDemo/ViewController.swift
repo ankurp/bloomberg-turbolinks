@@ -8,6 +8,19 @@ class DemoViewController: Turbolinks.VisitableViewController {
         view.retryButton.addTarget(self, action: #selector(retry(_:)), forControlEvents: .TouchUpInside)
         return view
     }()
+    
+    override func visitableDidRender() {
+        super.visitableDidRender()
+
+        if let path = visitableURL.path {
+            switch path {
+            case "/":
+                navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Sign In", style: .Plain, target: self, action: #selector(didSelectRightBarButtonItem(_:)))
+            default:
+                navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .Bookmarks, target: self, action: #selector(didSelectRightBarButtonItem(_:)))
+            }
+        }
+    }
 
     func presentError(error: Error) {
         errorView.error = error
@@ -23,5 +36,9 @@ class DemoViewController: Turbolinks.VisitableViewController {
     func retry(sender: AnyObject) {
         errorView.removeFromSuperview()
         reloadVisitable()
+    }
+    
+    func didSelectRightBarButtonItem(sender: AnyObject) {
+        
     }
 }
