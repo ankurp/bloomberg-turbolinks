@@ -41,7 +41,9 @@ class ViewController: Turbolinks.VisitableViewController {
     }
     
     func didSelectBookmarkButtonItem(sender: AnyObject) {
-        
+        let alertController = UIAlertController(title: "Bookmarked", message: "This article is saved for future reading", preferredStyle: .Alert)
+        alertController.addAction(UIAlertAction(title: "OK", style: .Default, handler: nil))
+        presentViewController(alertController, animated: true, completion: nil)
     }
     
     func didSelectSignInButtonItem(sender: AnyObject) {

@@ -14,6 +14,35 @@ const SELECTORS_TO_REMOVE = [
   'nav'
 ].join(", ");
 
+function onLoad(color) {
+  webkit.messageHandlers.bloomberg.postMessage(color);
+}
+
+function transform(body) {
+  let $ = cheerio.load(body);
+  $('<script src="/turbolinks.js"></script>').appendTo('head');
+  $('a').each((index, link) => {
+    const href = link.attribs.href;
+    if (href) {
+      link.attribs.href = href.replace(/http:\/\/www\.bloomberg\.com\//, '/');  
+    }
+  });
+
+  const site = $('meta[name="parsely-section"]').attr("content");
+  let color = "#2800d7";
+  switch (site) {
+    case "markets": color = "#FB8E1E"; break;
+    case "politics": color = "#5d42ab"; break;
+    default: color = "#2800d7";
+  }
+
+  $(SELECTORS_TO_REMOVE).remove();
+  $('base').attr('href', 'http://localhost:9292');
+  $(`<script type="text/javascript">(${onLoad.toString()})("${color}");</script>`).appendTo('body');
+
+  return $;
+}
+
 /**
  * Middleware
  */
@@ -31,16 +60,7 @@ app.get('*', function (req, res) {
       return res.send(error);
     }
 
-    let $ = cheerio.load(body);
-    $('<script src="/turbolinks.js"></script>').appendTo('head');
-    $('a').each((index, link) => {
-      const href = link.attribs.href;
-      if (href) {
-        link.attribs.href = href.replace(/http:\/\/www\.bloomberg\.com\//, '/');  
-      }
-    });
-    $(SELECTORS_TO_REMOVE).remove();
-    $('base').attr('href', 'http://localhost:9292');
+    const $ = transform(body);
     res.send($.html());
   });
 });
